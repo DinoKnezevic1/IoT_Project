@@ -12,12 +12,19 @@
             padding: 0;
             box-sizing: border-box;
             background-color: #f4f4f4;
+            color: #333;
+        }
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
         }
 
         h1 {
             text-align: center;
             margin-top: 20px;
-            color: #333;
+            color: #007bff;
         }
 
         #mqttMessages {
@@ -28,15 +35,20 @@
             background-color: #fff;
         }
 
-        #mqttMessages p {
-            margin: 5px 0;
-            padding: 5px;
-            border-bottom: 1px solid #ddd;
-            color: #555;
+        #mqttMessages {
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            border: 1px solid #333; 
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: auto;
         }
 
-        #password {
-            display: none;
+        #usernameValue {
+            display: none; 
         }
 
         #controls {
@@ -61,14 +73,15 @@
     </style>
 </head>
 <body>
-    <h1>Pametna kuća</h1>
+    <h1>Pametna garaža</h1>
 
     <div id="mqttMessages">
-        <!-- MQTT messages displayed dynamically -->
+        
     </div>
 
-    <div id="password">
-        <p id="passwordValue"></p>
+    <div id="usernameValue">
+        <p id="username"></p>
+        <p id="datetime"></p>
     </div>
 
     <div id="controls">
@@ -76,7 +89,6 @@
         <button onclick="toggleLight()">Svjetlo</button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
         function setupWebSocket() {
             var socket = io.connect('http://' + document.domain + ':' + location.port);
@@ -84,34 +96,47 @@
                 console.log('New MQTT Message\nTopic: ' + msg.topic + '\nMessage: ' + msg.message);
                 var messageContainer = document.getElementById('mqttMessages');
                 var messageElement = document.createElement('p');
-
-                if (msg.topic == "sensors/keypad") {
-                    messageElement.textContent = 'Sifra: ' + msg.message;
-                    var passwordDiv = document.getElementById('password');
-                    passwordDiv.style.display = 'block';
-                    var passwordValue = document.getElementById('passwordValue');
-                    passwordValue.textContent = 'Password: ' + msg.message;
-                }
-
-                messageContainer.appendChild(messageElement);
+                if(msg.topic=="sensors/validation"){
+                    var userInfo = JSON.parse(msg.message); 
+                    var username = userInfo.username;
+                    var datetime = getCurrentDateTime(); 
+                    messageElement.textContent = 'Korisnik: ' + username + ', Datum i vrijeme: ' + datetime;
+                    var usernameValue = document.getElementById('usernameValue');
+                    usernameValue.style.display = 'block';
+                }appendChild(messageElement);
             });
-
+    
+            
             socket.on('connect', function () {
                 console.log('Connected to WebSocket server');
             });
         }
-
-        function toggleDoor() {
-            var socket = io.connect('http://' + document.domain + ':' + location.port);
-            socket.emit('door_toggle', {});
-        }
-
-        function toggleLight() {
-            var socket = io.connect('http://' + document.domain + ':' + location.port);
-            socket.emit('light_toggle', {});
-        }
-
+    
+        
         document.addEventListener('DOMContentLoaded', setupWebSocket);
+    
+        
+        function getCurrentDateTime() {
+            var now = new Date();
+            var date = formatDate(now);
+            var time = formatTime(now);
+            return date + ' ' + time;
+        }
+    
+        function formatDate(date) {
+            var day = String(date.getDate()).padStart(2, '0');
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var year = date.getFullYear();
+            return day + '/' + month + '/' + year;
+        }
+    
+        function formatTime(date) {
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            var seconds = String(date.getSeconds()).padStart(2, '0');
+            return hours + ':' + minutes + ':' + seconds;
+        }
     </script>
+    
 </body>
 </html>
