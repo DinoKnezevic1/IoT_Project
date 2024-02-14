@@ -6,7 +6,7 @@
 #define ROW_NUM    4  
 #define COLUMN_NUM 4  
 #define SERVO_PIN  A0 
-#define photoResistorPin 1 
+#define photoResistorPin A1
 const int LED_PIN = 13;
 const int buzzer = 12;
 
@@ -26,7 +26,6 @@ String input_password;
 
 int angle = 0; 
 unsigned long lastTime;
-
 
 const char* mqtt_server = "192.168.25.190"; 
 const char* mqtt_topic = "sensors/validation";
@@ -49,6 +48,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
       angle = 90;
       servo.write(angle);
       lastTime = millis();
+      
+      int lightLevel = analogRead(photoResistorPin);
+      if (lightLevel < 500) {
+        digitalWrite(LED_PIN, HIGH);  
+      } else {
+        digitalWrite(LED_PIN, LOW);   
+      }
     }
   }
 }
