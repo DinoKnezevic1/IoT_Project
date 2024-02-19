@@ -47,6 +47,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     if (strcmp((char*)payload, "1") == 0) {
       angle = 90;
       servo.write(angle);
+      tone(buzzer,1000,5000);
       lastTime = millis();
       
       int lightLevel = analogRead(photoResistorPin);
